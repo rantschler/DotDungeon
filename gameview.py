@@ -5,7 +5,7 @@ from pygame.locals import *
 
 class Viewer:
 
-    def __init__(self,size):
+    def __init__(self,size,area = (800,600)):
         
         self.scale = 25
         
@@ -14,14 +14,35 @@ class Viewer:
         self.background = gc.Background(self.size,gc.BLACK)
         self.resize()
         
+        self.view_area = area
         
     def subscribe_to_map(self,map):
         
         self.map = map
+        map.get_board().set_viewer(self)
     
     def subscribe_to_player(self,player):
         
         self.player = player
+    
+    def get_scale(self):
+        
+        return self.scale
+    
+    def get_view_area(self):
+        """ Returns the area of the active map. """
+        
+        return self.view_area
+    
+    def get_center(self):
+        
+        x,y = self.player.get_position()
+        x *= self.scale
+        y *= self.scale
+        x += self.scale//2
+        y += self.scale//2
+        
+        return x,y
     
     def resize(self):
         self.screen = pg.display.set_mode(self.size,RESIZABLE,32)
@@ -44,6 +65,11 @@ class Viewer:
         #
         
         map = self.map.view(self.scale)
+        
+        x,y = self.view_area
+        x += 4
+        y += 4
+        pg.draw.rect(self.screen,gc.WHITE,((198,78),(x,y)))
         self.screen.blit(map,(200,80))
         
         #
@@ -56,11 +82,29 @@ class Viewer:
 
 class Board:
     
-    def __init__(self,size = (800,600)):
+    def __init__(self,map,size = (35,35)):
         
+        #
+        # size - # of squares side to side
+        # scale - # of pixels per side of a square
+        # area - view area
+        #
+        
+        self.map = map
         self.x , self.y = size
+    
+    def set_viewer(self,viewer):
+        """ Sets the view screen. """
         
-        self.board = pg.Surface(size)
+        self.viewer = viewer
+        
+        scale = self.viewer.get_scale()
+        
+        x,y = self.x,self.y
+        x *= scale 
+        y *= scale 
+        
+        self.board = pg.Surface((x,y))
         self.board.convert()
         self.board.fill((63,63,63))
         
@@ -75,7 +119,18 @@ class Board:
         
     def view(self,center=(100,100),size=(200,200)):
         
-        return self.board
+        size = self.viewer.get_view_area()
+        center = self.viewer.get_center()
+        scale = self.viewer.get_scale()
+        
+        x = - center[0] + size[0]//2
+        y = - center[1] + size[1]//2
+        
+        self.out = pg.Surface(size)
+        self.out.convert()
+        self.out.blit(self.board,(x,y))
+        
+        return self.out
         
 
 def empty_square(self,scale = 15):
@@ -107,7 +162,20 @@ def filled_square(self,scale = 15):
     out.fill((0,0,0))
         
     pg.draw.rect(out,(255,255,255),(1,1,scale-2,scale-2))
+    
+    return out
+
+def classic_hash(self,scale = 15):
         
+    out = pg.Surface((scale,scale))
+    out.convert()
+    out.fill((0,0,0))
+        
+    pg.draw.rect(out,(255,255,255),(1,1,scale-2,scale-2))
+    
+    size = int(float(scale) )
+    push = int((scale - size)*4/3+3)
+    gc.screenprint(out,"#",[push,-2],size,gc.BLACK)
     return out
 
 def classic_dude(self,scale):

@@ -1,4 +1,4 @@
-#6
+#
 # Project Title: 
 #
 # Author:  
@@ -14,7 +14,7 @@ import pygame as pg
 
 #
 # CLASSES
-#66
+#
 
 class Main:
     
@@ -44,8 +44,6 @@ class Main:
             ## Resolve other mechanics (scoring, etc) here or in
             ## other functions
             #
-            
-            
             
             if self.model:
                 """ Play the game. """
